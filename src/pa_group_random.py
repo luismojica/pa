@@ -34,11 +34,12 @@ def rand_perm(n):
 
 ''' Make the transposition of two position in the permutation p'''
 def transposition(p,idx1,idx2):
-    v1=p[idx1]
-    v2=p[idx2]
-    p[idx1]=v2
-    p[idx2]=v1
-    return p
+    p2=list(p) # Make sure not to modify p itself, it may be stored somewhere e.g. p_i
+    v1=p2[idx1]
+    v2=p2[idx2]
+    p2[idx1]=v2
+    p2[idx2]=v1
+    return p2
 
 ''' A random transposition'''
 def rand_transpositon(p):
@@ -66,7 +67,9 @@ def p_not_in_pa(pa,num_symbols=None):
     return p
 
 ''' Find new permutation using a random walk'''
-def random_walk(pa_file,d,add_symbol=False,append_file_name=None,jump_prob=0.7,existing_representatives=None):
+def random_walk(pa_file, d, add_symbol, append_file_name, jump_prob, existing_representatives):
+    if jump_prob == None:
+        jump_prob = 0.7
 
     # Retrieve the Permutation Array
     pa=parse_pa(pa_file)
