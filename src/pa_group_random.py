@@ -67,7 +67,9 @@ def p_not_in_pa(pa,num_symbols=None):
     return p
 
 ''' Find new permutation using a random walk'''
-def random_walk(pa_file,d,add_symbol=False,append_file_name=None,jump_prob=0.7,existing_representatives=None):
+def random_walk(pa_file, d, add_symbol, append_file_name, jump_prob, existing_representatives):
+    if jump_prob == None:
+        jump_prob = 0.7
 
     # Retrieve the Permutation Array
     pa=parse_pa(pa_file)
