@@ -1,12 +1,12 @@
 #!/usr/bin/python
-# 10/09/2016
+# 08/22/2016
 # Luis Mojica
 # UTD
-# Try Search on Blocks that are not groups
+# Creating the random permutation and random walk
 
 import argparse
 import sys, getopt
-from utils import parse_pa,covered,hd_pairwise,pa2str,hd_perm_list,append_file,hd
+from utils import parse_pa,covered,hd_pairwise,pa2str,hd_perm_list,append_file
 from utils import add_symbol as add_symbol_fun
 from quick_hd import mul,qcheck_i,inv
 from random import randint,random
@@ -66,44 +66,13 @@ def p_not_in_pa(pa,num_symbols=None):
         p=rand_perm(num_symbols)
     return p
 
-'''Hamming distance between hd(P,x_i,x_j^-1)>=d'''
-def hd_xijp(pa,p,d):
-    loc_hd=len(pa[0])
-    for x in xrange(len(pa)-1):
-        for y in xrange(x+1,len(pa)):
-            x_i=pa[x]
-            x_j=pa[y]
-            loc_hd=min(loc_hd,hd(p,mul(x_i,inv(x_j))))
-            if loc_hd<d:
-                print 'hd:',loc_hd
-                return False
-    print 'hd:',loc_hd
-    return True
-
-# '''Hamming distance between hd(P,x_i,x_j^-1)>=d'''
-# def hd_xijp(pa,p,d):
-#     loc_hd=len(pa[0])
-#     for x in xrange(len(pa)):
-#         for y in xrange(len(pa)):
-#             if x==y:
-#                 continue
-#             x_i=pa[x]
-#             x_j=pa[y]
-#             loc_hd=min(loc_hd,hd(p,mul(x_i,inv(x_j))))
-#             if loc_hd<d:
-#                 print 'hd:',loc_hd
-#                 return False
-#     print 'hd:',loc_hd
-#     return True
-
-
 ''' Find new permutation using a random walk'''
 def random_walk(pa_file, d, add_symbol, append_file_name, jump_prob, existing_representatives):
     if jump_prob == None:
         jump_prob = 0.7
 
     # Retrieve the Permutation Array
-    pa=parse_pa(pa_file)[0:10]
+    pa=parse_pa(pa_file)
     # print pa
 
     if add_symbol:
@@ -119,26 +88,20 @@ def random_walk(pa_file, d, add_symbol, append_file_name, jump_prob, existing_re
     
     # Keep track of p_i:
     p_i=[range(num_symbols)]
-    p_i=[]
     if existing_representatives is not None:
         p_i=existing_representatives
 
     while keep_searching:
 
-        # # The first pernutation to be found:
-        # ckc=qcheck_i(p_i,p,pa)
+        # The first pernutation to be found:
+        ckc=qcheck_i(p_i,p,pa)
 
-        # if ckc>=d:
-        #     print 'ckc',ckc
-        #     p_i.append(p)
-        #     print p
-        #     if append_file_name is not None:
-        #         append_file(append_file_name,pa2str([p])+'\n')
-
-        # print d
-        if hd_xijp(pa,p,d):
+        if ckc>=d:
+            print 'ckc',ckc
+            p_i.append(p)
             print p
-            # exit()
+            if append_file_name is not None:
+                append_file(append_file_name,pa2str([p])+'\n')
 
 
         # Compute a random draw from the uniform distribution
@@ -147,7 +110,6 @@ def random_walk(pa_file, d, add_symbol, append_file_name, jump_prob, existing_re
         # Reject:
         if draw<=jump_prob:
             p=p_not_in_pa(pa,num_symbols)
-            # print p
 
         else:
             # print 'trans~'
