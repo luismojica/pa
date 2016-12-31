@@ -135,6 +135,7 @@ def main(argv):
     parser.add_argument("--existing_representatives_list", required=False, help='Start the search including this list of cosets representatives')
 
 
+    print 'Aqui mero'
     # Get the arguments:
     args = parser.parse_args()
 
