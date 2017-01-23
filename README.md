@@ -20,7 +20,7 @@ python src/pgl_blocks.py -h for options
 
 i.e:
 
-Give a PGL(2,n) group file to be processed: \n
+Give a PGL(2,n) group file to be processed:
 python src/pgl_blocks.py --in_pgl_file ../data/4_2.txt --q 3
 
 Use the internal group generator:
