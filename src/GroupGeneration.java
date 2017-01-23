@@ -1,3 +1,4 @@
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -13,8 +14,37 @@ public class GroupGeneration {
 			print(GF(Integer.parseInt(args[1]), Integer.parseInt(args[2]))[1]);
 		else if(cmd.equalsIgnoreCase("gfadd"))
 			print(GF(Integer.parseInt(args[1]), Integer.parseInt(args[2]))[0]);
+		else if(cmd.equalsIgnoreCase("pgaml"))
+			print(PGamL(Integer.parseInt(args[1]), Integer.parseInt(args[2])));
+		else if(cmd.equalsIgnoreCase("agaml"))
+			print(AGamL(Integer.parseInt(args[1]), Integer.parseInt(args[2])));
+		else if(cmd.equalsIgnoreCase("aglcos"))
+			printCosets(AGLCosets(Integer.parseInt(args[1]), Integer.parseInt(args[2])));
 		else
-			System.out.println("Invalid argument. Possible arguments: agl, pgl, gfmult, gfadd");
+			System.out.println("Invalid argument. Possible arguments: agl, pgl, gfmult, gfadd, pgaml, agaml, aglcos");
+	}
+	
+	public static void printCosets(int[][][] blocks) {
+		for(int i = 0; i < blocks.length; i++) {
+			System.out.printf("\nCoset %d:\n", i+1);
+			print(blocks[i]);
+		}
+	}
+	
+	public static int[][][] AGLCosets(int p, int r) {
+		int[][] agl = AGL(p,r);
+		int n = (int)Math.pow(p, r);
+		int[][][] res = new int[n-1][n][];
+		int block = 0;
+		int row = 0;
+		for(int perm = 0; perm < agl.length; perm++) {
+			res[block][row++] = agl[perm];
+			if(row == n) {
+				block++;
+				row = 0;
+			}
+		}
+		return res;
 	}
 	
 	public static void print(int[][] arr) {
@@ -24,6 +54,64 @@ public class GroupGeneration {
 			}
 			System.out.println();
 		}
+	}
+	
+	public static int[][] AGamL(int p, int r) {
+		int n = (int)Math.pow(p, r);
+		int[][] parr = new int[r*n*(n-1)][n];
+		int[][] multTable = GF(p,r)[1];
+		int k = 0;
+		int[][] agl = AGL(p,r);
+		for(int i = 0; i < r; i++) {
+			int[] pwrPerm = powerMap(p, i, n, multTable);
+			for(int perm = 0; perm < agl.length; perm++)
+				parr[k++] = compose(agl[perm], pwrPerm);
+		}
+		return parr;
+	}
+	
+	public static int[][] PGamL(int p, int r) {
+		int n = (int)Math.pow(p, r);
+		int[][] parr = new int[(n+1)*n*(n-1)*r][n+1];
+		int[][] multTable = GF(p,r)[1];
+		int k = 0;
+		int[][] pgl = PGL(p,r);
+		for(int i = 0; i < r; i++) {
+			int[] pwrPerm = powerMap(p, i, n, multTable);
+			for(int perm = 0; perm < pgl.length; perm++)
+				parr[k++] = compose(pgl[perm], pwrPerm);
+		}
+		return parr;
+	}
+	
+	public static int[] compose(int[] a, int[] b) {
+		int[] res = new int[Math.max(a.length, b.length)];
+		for(int i = 0; i < res.length; i++)
+			if(i < b.length && i < a.length)
+				res[i] = a[b[i]];
+			else if(i < a.length)
+				res[i] = a[i];
+			else if(i < b.length)
+				res[i] = b[i];
+		return res;
+	}
+	
+	public static int[] powerMap(int p, int i, int mod, int[][] mult) {
+		int[] res = new int[mod];
+		for(int n = 0; n < res.length; n++)
+			res[n] = pow(n, (int)Math.pow(p, i), mult);
+		return res;
+	}
+	
+	public static int pow(int a, int r, int[][] mult) {
+		if(r == 0)
+			return 1;
+		else if(r == 1)
+			return a;
+		else if(r % 2 == 0)
+			return pow(mult[a][a], r/2, mult);
+		else
+			return mult[a][pow(mult[a][a], (r-1)/2, mult)];
 	}
 	
 	public static int[][] PGL(int p, int r) {
@@ -63,15 +151,14 @@ public class GroupGeneration {
 		for(int i = 0; i < res.length-1; i++) {
 			int den = tables[2][0][tables[0][tables[1][c][i]][d]];
 			if(den == -1)
-				res[i] = res.length;
+				res[i] = res.length-1;
 			else
 				res[i] = tables[1][den][tables[0][tables[1][a][i]][b]];
 		}
 		if(c == 0)
-			res[res.length-1] = res.length;
+			res[res.length-1] = res.length-1;
 		else
 			res[res.length-1] = tables[1][a][tables[2][0][c]];
-//		System.out.printf("(%d, %d, %d, %d) : %s%n",a,b,c,d,Arrays.toString(res));
 		return res;
 	}
 	
@@ -94,6 +181,10 @@ public class GroupGeneration {
 	}
 	
 	public static int[][][] GF(int prime, int power) {
+		if(!(new BigInteger(Integer.toString(prime))).isProbablePrime(10000)) {
+			System.out.println("Not a prime. Please don't try to break me.");
+			System.exit(1);
+		}
 		Polynomial.mod = prime;
 		Polynomial irr = findRandomIrreducible(prime, power);
 		int[][][] res = new int[3][][];
@@ -157,19 +248,26 @@ public class GroupGeneration {
 		ArrayList<Polynomial> res = new ArrayList<Polynomial>();
 		int[] coef = new int[deg];
 		recurse(coef, 0, res, mod);
-		for(int i = 1; i < res.size(); i++)
-			if(res.get(i).deg == 0 && res.get(i).coef[0] == 1) {
-				Polynomial temp = res.get(1);
-				res.set(1, res.get(i));
-				res.set(i, temp);
-				break;
-			}
+//		for(int i = 1; i < res.size(); i++)
+//			if(res.get(i).deg == 0 && res.get(i).coef[0] == 1) {
+//				Polynomial temp = res.get(1);
+//				res.set(1, res.get(i));
+//				res.set(i, temp);
+//				break;
+//			}
+		return res;
+	}
+	
+	public static int[] reverse(int[] arr) {
+		int[] res = new int[arr.length];
+		for(int i = 0; i < res.length; i++)
+			res[i] = arr[arr.length-1-i];
 		return res;
 	}
 	
 	public static void recurse(int[] coef, int i, ArrayList<Polynomial> res, int mod) {
 		if(i == coef.length) {
-			res.add(new Polynomial(coef));
+			res.add(new Polynomial(reverse(coef)));
 			return;
 		}
 		for(int k = 0; k < mod; k++) {
