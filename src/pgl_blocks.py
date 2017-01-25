@@ -5,54 +5,11 @@
 # Dedicated Script to generate q-1 blocks of size q+1 from PGL(2,q)
 
 import argparse
-from utils import write_file,parse_pa,pa2str
+from utils import write_file,parse_pa,pa2str,compile_java,get_pgl_java
 from os import listdir
 from os.path import isfile,join
 from quick_hd import mul
 import math
-
-import os.path,subprocess
-from subprocess import STDOUT,PIPE
-
-''' If the class file is not present, compile'''
-def compile_java():
-    if not isfile('GroupGeneration.class'):
-
-        cmd = ['javac', 'GroupGeneration.java']
-        proc = subprocess.Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-        stdout,stderr = proc.communicate()
-        if stdout is not None:
-            print stdout
-            return False
-    else:
-        return True
-    
-''' Call Zac's program to generate the group'''
-def get_pgl_java(p, pwr):
-    # java_class,ext = os.path.splitext(java_file)
-    cmd = ['java', 'GroupGeneration','pgl',str(p),str(pwr)]
-    proc = subprocess.Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-    stdout,stderr = proc.communicate()
-    
-    if stdout is "":
-        return None
-    elif stdout[:3]=='Not':
-        print 'aqui'
-        return -1
-    return parse_table(stdout)
-
-''' Zach's table'''
-def parse_table(table):
-    # print table
-    # exit()
-    out=[]
-    for line in table.split('\n'):
-        if line:
-            # print line.split()
-            p=[int(x) for x in line.strip().split()]
-            if p:
-                out.append(p)
-    return out
 
 
 def to_cycles(p):

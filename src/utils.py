@@ -215,3 +215,51 @@ def add_symbol(pa):
         perm.append(num_symbol)
 
     return pa
+
+''' If the class file is not present, compile'''
+def compile_java():
+    from os.path import isfile,join
+    import os.path,subprocess
+    from subprocess import STDOUT,PIPE
+
+    if not isfile('GroupGeneration.class'):
+
+        cmd = ['javac', 'GroupGeneration.java']
+        proc = subprocess.Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+        stdout,stderr = proc.communicate()
+        if stdout is not None:
+            print stdout
+            return False
+    else:
+        return True
+    
+''' Call Zac's program to generate the group'''
+def get_pgl_java(p, pwr):
+    from os.path import isfile,join
+    import os.path,subprocess
+    from subprocess import STDOUT,PIPE
+
+    # java_class,ext = os.path.splitext(java_file)
+    cmd = ['java', 'GroupGeneration','pgl',str(p),str(pwr)]
+    proc = subprocess.Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+    stdout,stderr = proc.communicate()
+    
+    if stdout is "":
+        return None
+    elif stdout[:3]=='Not':
+        print 'aqui'
+        return -1
+    return parse_group_table(stdout)
+
+''' Zach's table'''
+def parse_group_table(table):
+    # print table
+    # exit()
+    out=[]
+    for line in table.split('\n'):
+        if line:
+            # print line.split()
+            p=[int(x) for x in line.strip().split()]
+            if p:
+                out.append(p)
+    return out
