@@ -14,7 +14,7 @@ The program will start searching for permutation at the given hamming distance. 
 All Found permutations will be printed to standard output and saved in a file, if a file name is give in the --out_append_perms parameter.
 
 
-# Find q-1 blocks of size q+1 from PGL(2,q) where q is prime or prime power:
+# Find q*(q-1) blocks of size q+1 from PGL(2,q) where q is prime or prime power:
 
 python src/pgl_blocks.py -h for options
 
