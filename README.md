@@ -3,7 +3,7 @@
 *\<numpy\>*:
 Follow instructions from https://www.scipy.org/install.html
 
-or if using Ubuntu:
+or, if you are using Ubuntu:
 
 sudo apt-get install python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose
 
@@ -67,4 +67,4 @@ Use the parameter --use_ILP to compute the partition using an Integer Linear Pro
 
 i.e.:
 
-python src/pe_parallel_ilp.py --in_pgl_file ../../74_72.txt --q 73 --num_blocks 5
+python src/pe_parallel_ilp.py --in_pgl_file ../74_72.txt --q 73 --num_blocks 6
