@@ -263,3 +263,134 @@ def parse_group_table(table):
             if p:
                 out.append(p)
     return out
+
+''' Parse partition file: P,Q'''
+def parse_partition(filename):
+	from ast import literal_eval
+	# Check if the filename is a already parsed PA:
+	if type(filename) is list:
+		return filename
+
+	# Return list
+	P=[]; Q=[]
+
+	with open(filename, 'r') as f:
+		for line in f:
+			if line[0]=='#' or line=='\n':
+				continue
+
+			if line[0]=='P':
+				P=literal_eval(line[2:])
+			if line[0]=='Q':
+				Q=literal_eval(line[2:])
+
+	return P,Q
+
+
+''' Parse from a textfile into a list, all cosets representatives in it'''
+def parse_repsentatives(filename):
+	# Check if the filename is a already parsed PA:
+	if type(filename) is list:
+		return filename
+
+	# Return list
+	reps=[]
+
+	with open(filename, 'r') as f:
+		for line in f:
+			if line[0]=='#' or line=='\n':
+				continue
+
+			# Parse:
+			str_rep=line.split()
+			reps.append([int(x) for x in str_rep])
+
+	return reps
+
+''' Rotate a list'''
+def rotate(iterable):
+	if iterable is None:
+		return None
+	if len(iterable)==1:
+		return iterable
+	else:
+		out=[]
+
+		for idx in xrange(len(iterable)):
+			# iterable=iterable[:] ?
+			shift=iterable[1:]+iterable[0:1]
+			out.append(shift)
+			iterable=shift
+
+	return out
+
+''' Compose the group/pa with the coset representatives'''
+def create_cosets(g,reps,num_cosets=-1,num_new_sym=0):
+
+    cosets=[]
+    
+    for idx,r in enumerate(reps):
+        cosets.append(compose_list(g,r,extend=num_new_sym))
+        if num_cosets>0 and idx==num_cosets-2: # -2 Because we have the group itself
+            break
+
+    # On the actual group
+    if num_new_sym:
+        g_ext=[]
+        for p in g:
+            p+=[None]*num_new_sym
+    cosets.append(g)
+
+    return cosets
+
+''' Extend cosets with n none elements'''
+def extend_cosets(cosets,num_new_sym=0):
+    
+    if num_new_sym:
+        for coset in cosets:
+            for p in coset:
+                p+=[None]*num_new_sym
+    return cosets
+
+''' Get n and d from filename'''
+def get_nd(fname, reobj=None):
+
+	if reobj is None:
+		import re
+		reobj = re.compile(r".*/(\d+)_(\d+).*")
+	found=reobj.match(fname)
+	if found:
+		n=int(found.group(1))
+		d=int(found.group(2))
+		return (n,d)
+	
+	return found
+
+''' With the P extend the permutation array'''
+def extend(blocks,P,Q,new_sym):
+    out=[]
+
+    # print P,list(Q),new_sym
+
+    for idx_block,block in enumerate(blocks):
+        q=Q[idx_block]
+        for perm in block:
+            # Only add an element to the end:
+            # if P[0] is not None and new_sym==P[0][0]:
+            if P[0] and new_sym==P[0][0]:
+                perm.append(new_sym)
+                out.append(perm)
+            # Insert:
+            else:
+                for pos in P[idx_block]:
+                    # print P[idx_block]
+                    if perm[pos] in q:
+                        out.append(perm[:pos]+[new_sym]+perm[pos+1:]+[perm[pos]])
+                        break # To count it only once
+
+    # Verfiy correctness:
+    # assert(hd_pairwise(out)==new_sym-1)
+    # print hd_pairwise(out)
+    # print len(out)
+
+    return out
